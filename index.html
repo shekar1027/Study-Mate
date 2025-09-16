@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyMate - Your AI Study Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .app-bg {
+            background-color: #f3f4f6; /* gray-100 */
+        }
+        .tab-button {
+            @apply px-4 py-2 font-semibold text-gray-600 rounded-md transition-colors duration-200;
+        }
+        .tab-button.active {
+            @apply bg-white text-indigo-600 shadow-sm;
+        }
+        /* Simple animation for the thinking dots */
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+        .dot {
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .dot1 { animation-delay: -0.32s; }
+        .dot2 { animation-delay: -0.16s; }
+    </style>
+</head>
+<body class="app-bg">
+
+    <!-- Authentication View -->
+    <div id="auth-view" class="flex items-center justify-center min-h-screen">
+        <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg">
+            <div class="text-center">
+                 <div class="text-3xl font-bold text-indigo-600 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+                    StudyMate
+                </div>
+                <h2 id="auth-title" class="mt-4 text-2xl font-bold text-gray-900">
+                    Login to your account
+                </h2>
+                <p id="auth-subtitle" class="mt-2 text-sm text-gray-600">
+                    Don't have an account? <button id="switch-to-register" class="font-medium text-indigo-600 hover:underline">Register</button>
+                </p>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="login-form" class="space-y-6" action="#" method="POST">
+                <div>
+                    <label for="login-email" class="text-sm font-medium text-gray-700">Email address</label>
+                    <input id="login-email" name="email" type="email" autocomplete="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="login-password" class="text-sm font-medium text-gray-700">Password</label>
+                    <input id="login-password" name="password" type="password" autocomplete="current-password" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Sign in
+                </button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="register-form" class="hidden space-y-6" action="#" method="POST">
+                <div>
+                    <label for="register-email" class="text-sm font-medium text-gray-700">Email address</label>
+                    <input id="register-email" name="email" type="email" autocomplete="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="register-password" class="text-sm font-medium text-gray-700">Password</label>
+                    <input id="register-password" name="password" type="password" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                 <div>
+                    <label for="confirm-password" class="text-sm font-medium text-gray-700">Confirm Password</label>
+                    <input id="confirm-password" name="confirm-password" type="password" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Create account
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Application View (hidden by default) -->
+    <div id="app-view" class="hidden flex flex-col h-screen">
+        <!-- Header -->
+        <header class="bg-white border-b border-gray-200 shadow-sm z-10">
+            <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <div class="text-2xl font-bold text-indigo-600 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+                    StudyMate
+                </div>
+                 <p class="text-gray-500 hidden md:block">Your AI-Powered Study Assistant</p>
+                 <button id="logout-button" class="font-medium text-indigo-600 hover:underline flex items-center">
+                    <i data-lucide="log-out" class="w-4 h-4 mr-1"></i>
+                    Logout
+                 </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 container mx-auto p-4 md:p-6 grid lg:grid-cols-2 gap-6 overflow-hidden">
+            
+            <!-- Left Panel: Input -->
+            <div class="bg-white rounded-xl shadow-md flex flex-col h-full">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                        <i data-lucide="file-plus-2" class="mr-3 text-indigo-500"></i>
+                        Provide Your Study Material
+                    </h2>
+                    <p class="text-gray-500 mt-1">Add your content below to get started.</p>
+                </div>
+
+                <!-- Input Tabs -->
+                <div class="p-4 bg-gray-50 border-b border-gray-200">
+                    <div class="bg-gray-200 p-1 rounded-lg flex space-x-1">
+                        <button id="tab-text" class="tab-button active flex-1">Paste Text</button>
+                        <button id="tab-file" class="tab-button flex-1">Upload File</button>
+                    </div>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="p-6 flex-1 overflow-y-auto">
+                    <!-- Text Input Panel -->
+                    <div id="panel-text">
+                        <textarea id="text-input" class="w-full h-64 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow" placeholder="Paste your notes, an article, or any text here..."></textarea>
+                    </div>
+
+                    <!-- File Input Panel -->
+                    <div id="panel-file" class="hidden">
+                        <div id="file-dropzone" class="border-2 border-dashed border-gray-300 rounded-lg p-10 text-center cursor-pointer hover:border-indigo-500 bg-gray-50 transition-colors">
+                            <i data-lucide="upload-cloud" class="mx-auto h-12 w-12 text-gray-400"></i>
+                            <p class="mt-2 text-gray-600">Drag & drop your file here</p>
+                            <p class="text-sm text-gray-500">or</p>
+                            <button id="browse-button" class="mt-2 text-indigo-600 font-semibold hover:underline">Browse files</button>
+                            <input type="file" id="file-input" class="hidden" accept=".pdf,.doc,.docx,.txt">
+                        </div>
+                        <div id="file-display" class="hidden mt-4 bg-indigo-50 p-4 rounded-lg flex items-center justify-between">
+                            <div class="flex items-center">
+                                <i data-lucide="file-text" class="text-indigo-600"></i>
+                                <span id="file-name" class="ml-3 font-medium text-gray-700"></span>
+                            </div>
+                            <button id="remove-file-button" class="text-red-500 hover:text-red-700">
+                                <i data-lucide="x-circle"></i>
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2 text-center">Supported formats: PDF, DOCX, TXT</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Q&A and Output -->
+            <div class="bg-white rounded-xl shadow-md flex flex-col h-full">
+                 <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                        <i data-lucide="sparkles" class="mr-3 text-indigo-500"></i>
+                        Get Your Answers
+                    </h2>
+                     <p class="text-gray-500 mt-1">Ask a question based on your material.</p>
+                </div>
+                
+                <!-- Output Display -->
+                <div id="output-container" class="flex-1 p-6 overflow-y-auto">
+                    <div id="output-placeholder" class="text-center text-gray-500 h-full flex flex-col justify-center items-center">
+                        <i data-lucide="bot" class="h-16 w-16 text-gray-300"></i>
+                        <p class="mt-4 text-lg">Your answers will appear here.</p>
+                        <p class="text-sm">Provide some material and ask a question to begin.</p>
+                    </div>
+                    <div id="output-thinking" class="hidden text-center text-gray-600 h-full flex flex-col justify-center items-center">
+                        <div class="flex items-center space-x-2">
+                           <div class="dot dot1 w-3 h-3 bg-indigo-500 rounded-full"></div>
+                           <div class="dot dot2 w-3 h-3 bg-indigo-500 rounded-full"></div>
+                           <div class="dot dot3 w-3 h-3 bg-indigo-500 rounded-full"></div>
+                        </div>
+                        <p class="mt-4 text-lg">Analyzing and generating your answer...</p>
+                    </div>
+                    <div id="output-content" class="hidden space-y-4">
+                        <!-- Dynamic content will be injected here -->
+                    </div>
+                </div>
+
+                <!-- Query Input Form -->
+                <div class="p-6 bg-gray-50 border-t border-gray-200">
+                    <form id="query-form" class="flex items-center gap-4">
+                        <input type="text" id="query-input" placeholder="Ask your question..." class="w-full py-3 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" disabled>
+                        <button type="submit" id="submit-button" class="bg-indigo-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+                            Ask
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        
+        // --- VIEW MANAGEMENT ---
+        const authView = document.getElementById('auth-view');
+        const appView = document.getElementById('app-view');
+
+        // --- AUTH ELEMENTS ---
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const switchToRegister = document.getElementById('switch-to-register');
+        const authTitle = document.getElementById('auth-title');
+        const authSubtitle = document.getElementById('auth-subtitle');
+        const logoutButton = document.getElementById('logout-button');
+
+        // --- STATE MANAGEMENT ---
+        let currentInputType = 'text'; // 'text' or 'file'
+        let selectedFile = null;
+
+        // --- DOM ELEMENTS (APP) ---
+        const tabText = document.getElementById('tab-text');
+        const tabFile = document.getElementById('tab-file');
+        const panelText = document.getElementById('panel-text');
+        const panelFile = document.getElementById('panel-file');
+        
+        const textInput = document.getElementById('text-input');
+        const fileInput = document.getElementById('file-input');
+        const fileDropzone = document.getElementById('file-dropzone');
+        const browseButton = document.getElementById('browse-button');
+        const fileDisplay = document.getElementById('file-display');
+        const fileNameEl = document.getElementById('file-name');
+        const removeFileButton = document.getElementById('remove-file-button');
+
+        const queryForm = document.getElementById('query-form');
+        const queryInput = document.getElementById('query-input');
+        const submitButton = document.getElementById('submit-button');
+
+        const outputPlaceholder = document.getElementById('output-placeholder');
+        const outputThinking = document.getElementById('output-thinking');
+        const outputContent = document.getElementById('output-content');
+        
+
+        // --- APP FUNCTIONS ---
+        function updateFormState() {
+            const hasText = textInput.value.trim().length > 0;
+            const hasFile = selectedFile !== null;
+            const canAsk = (currentInputType === 'text' && hasText) || (currentInputType === 'file' && hasFile);
+            
+            queryInput.disabled = !canAsk;
+            submitButton.disabled = !canAsk || queryInput.value.trim().length === 0;
+
+            if (canAsk) {
+                queryInput.placeholder = "Ask a question about your material...";
+            } else {
+                 queryInput.placeholder = "First, provide some material to analyze.";
+            }
+        }
+        
+        function handleFileSelect(file) {
+            if (!file) return;
+            const allowedTypes = ['application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('Invalid file type. Please upload a PDF, DOCX, or TXT file.');
+                return;
+            }
+            selectedFile = file;
+            fileNameEl.textContent = selectedFile.name;
+            fileDropzone.classList.add('hidden');
+            fileDisplay.classList.remove('hidden');
+            updateFormState();
+        }
+        
+        function resetFileInput() {
+            selectedFile = null;
+            fileInput.value = '';
+            fileDropzone.classList.remove('hidden');
+            fileDisplay.classList.add('hidden');
+            updateFormState();
+        }
+
+        function displayOutput(answer, sources) {
+            outputPlaceholder.classList.add('hidden');
+            outputThinking.classList.add('hidden');
+            outputContent.classList.remove('hidden');
+
+            let sourcesHTML = '';
+            if (sources && sources.length > 0) {
+                 sourcesHTML = `
+                    <div class="mt-6 pt-4 border-t border-gray-200">
+                        <h4 class="font-semibold text-gray-700 mb-2">Source References</h4>
+                        <div class="space-y-2">
+                            ${sources.map((source) => `
+                                <div class="p-3 bg-gray-50 rounded-md border border-gray-200 text-sm">
+                                    <p class="text-gray-600 italic">"...${source}..."</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>`;
+            }
+
+            outputContent.innerHTML = `
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">Answer</h3>
+                    <p class="mt-2 text-gray-700 leading-relaxed">${answer}</p>
+                    ${sourcesHTML}
+                </div>`;
+        }
+
+        async function handleSubmitQuery(e) {
+            e.preventDefault();
+            const question = queryInput.value.trim();
+            if (!question) return;
+
+            outputPlaceholder.classList.add('hidden');
+            outputContent.classList.add('hidden');
+            outputThinking.classList.remove('hidden');
+            submitButton.disabled = true;
+
+            // --- SIMULATED BACKEND CALL ---
+            console.log("Simulating API call with question:", question);
+            await new Promise(resolve => setTimeout(resolve, 2500));
+
+            const mockResponse = {
+                answer: `Based on the provided material, <strong>overfitting</strong> in machine learning occurs when a model learns the training data too well, including the noise and statistical fluctuations. This results in the model performing excellently on the data it was trained on, but poorly on new, unseen data because it has failed to generalize.`,
+                sources: [ "Overfitting occurs when a model learns the training data too well, capturing noise..."]
+            };
+            
+            displayOutput(mockResponse.answer, mockResponse.sources);
+            queryInput.value = '';
+            updateFormState();
+        }
+
+        // --- AUTH FUNCTIONS & EVENT LISTENERS ---
+        function showLogin() {
+            authTitle.textContent = 'Login to your account';
+            authSubtitle.innerHTML = `Don't have an account? <button id="switch-to-register" class="font-medium text-indigo-600 hover:underline">Register</button>`;
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+            document.getElementById('switch-to-register').addEventListener('click', showRegister);
+        }
+
+        function showRegister(e) {
+            if (e) e.preventDefault();
+            authTitle.textContent = 'Create a new account';
+            authSubtitle.innerHTML = `Already have an account? <button id="switch-to-login" class="font-medium text-indigo-600 hover:underline">Sign in</button>`;
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+            document.getElementById('switch-to-login').addEventListener('click', showLogin);
+        }
+
+        switchToRegister.addEventListener('click', showRegister);
+        
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            // In a real app, you would validate credentials here
+            authView.classList.add('hidden');
+            appView.classList.remove('hidden');
+        });
+
+        registerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            // In a real app, you would create the user account here
+            authView.classList.add('hidden');
+            appView.classList.remove('hidden');
+        });
+
+        logoutButton.addEventListener('click', () => {
+            // Reset app state if needed
+            appView.classList.add('hidden');
+            authView.classList.remove('hidden');
+            showLogin(); // Default to login view on logout
+        });
+
+
+        // --- APP EVENT LISTENERS ---
+        tabText.addEventListener('click', () => {
+            currentInputType = 'text';
+            tabText.classList.add('active');
+            tabFile.classList.remove('active');
+            panelText.classList.remove('hidden');
+            panelFile.classList.add('hidden');
+            updateFormState();
+        });
+
+        tabFile.addEventListener('click', () => {
+            currentInputType = 'file';
+            tabFile.classList.add('active');
+            tabText.classList.remove('active');
+            panelFile.classList.remove('hidden');
+            panelText.classList.add('hidden');
+            updateFormState();
+        });
+
+        textInput.addEventListener('input', updateFormState);
+        queryInput.addEventListener('input', updateFormState);
+
+        fileDropzone.addEventListener('dragover', (e) => { e.preventDefault(); fileDropzone.classList.add('border-indigo-500', 'bg-indigo-50'); });
+        fileDropzone.addEventListener('dragleave', (e) => { e.preventDefault(); fileDropzone.classList.remove('border-indigo-500', 'bg-indigo-50'); });
+        fileDropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileDropzone.classList.remove('border-indigo-500', 'bg-indigo-50');
+            handleFileSelect(e.dataTransfer.files[0]);
+        });
+        
+        browseButton.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
+        removeFileButton.addEventListener('click', resetFileInput);
+        
+        queryForm.addEventListener('submit', handleSubmitQuery);
+
+        // --- INITIALIZATION ---
+        updateFormState();
+    </script>
+</body>
+</html>
+
